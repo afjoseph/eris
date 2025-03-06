@@ -7,6 +7,10 @@ import (
 	"reflect"
 )
 
+// If StrictMode is set to true, any call to Wrap or Wrapf will panic if the
+// error being wrapped is nil.
+var StrictMode = false
+
 // New creates a new root error with a static message.
 func New(msg string) error {
 	stack := callers(3) // callers(3) skips this method, stack.callers, and runtime.Callers
@@ -48,7 +52,11 @@ func Wrapf(err error, format string, args ...interface{}) error {
 
 func wrap(err error, msg string) error {
 	if err == nil {
-		return nil
+		if !StrictMode {
+			return nil
+		} else {
+			panic("eris: cannot wrap a nil error")
+		}
 	}
 
 	// callers(4) skips runtime.Callers, stack.callers, this method, and Wrap(f)
